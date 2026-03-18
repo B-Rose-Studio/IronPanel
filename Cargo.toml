@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = [
+  "ipanel-config",
+  "ipanel-deamon",
+  "ipanel-domain",
+  "ipanel-dtos",
+  "ipanel-gui",
+  "ipanel-repositories",
+  "ipanel-server",
+  "ipanel-services",
+]
+
+[workspace.dependencies]
+actix-web = "4.12.1"
+anyhow = "1.0.100"
+async-trait = "0.1.89"
+chrono = { version = "0.4.42", features = ["serde"] }
+config = { path = "./ipanel-config" }
+domain = { path = "./ipanel-domain" }
+dtos = { path = "./ipanel-dtos" }
+repositories = { path = "./ipanel-repositories" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+services = { path = "./ipanel-services" }
+surrealdb = { version = "3", features = ["rustls"] }
+thiserror = "2.0.17"
+tokio = { version = "1.49.0", features = ["full"] }
+uuid = { version = "1.19.0", features = ["js", "serde", "v4"] }
+validator = { version = "0.20", features = ["derive"] }
+
+[profile.dev]
+opt-level = 0
+debug = 0
+codegen-units = 256
