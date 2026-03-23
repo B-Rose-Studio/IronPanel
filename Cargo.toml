@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-  "ipanel-config",
   "ipanel-deamon",
   "ipanel-domain",
   "ipanel-dtos",
