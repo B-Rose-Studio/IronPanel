@@ -23,12 +23,18 @@ pub trait ServiceBuilder: Sync + Send {
     fn build(self) -> Self::S;
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct ServiceManager {
     map: RwLock<HashMap<TypeId, Arc<dyn Any + Sync + Send>>>,
 }
 
 impl ServiceManager {
+    pub fn new() -> Self {
+        Self {
+            map: RwLock::new(HashMap::new()),
+        }
+    }
+
     pub async fn register<S: Service + 'static>(&self, service: S) {
         let mut map = self.map.write().await;
         map.insert(TypeId::of::<S>(), Arc::new(service));
