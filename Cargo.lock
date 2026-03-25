@@ -2698,6 +2698,7 @@ name = "ipanel-services"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "ipanel-domain",
  "serde",
  "tokio",
 ]

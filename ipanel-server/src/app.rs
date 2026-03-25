@@ -22,21 +22,40 @@ impl App {
             ServerApp::new()
                 .app_data(app_state.clone())
                 .service(web::scope("/auth").route(
-                    "/{username}",
-                    web::get().to(
-                        move |username: web::Path<String>, app_state: web::Data<App>| async move {
-                            let services = app_state.services.clone();
-                            auth::get_auth_methods(&services, &username)
-                                .await
-                                .join(" | ")
-                        },
-                    ),
-                ))
+                "/{domain}/{username}",
+                web::get().to(
+                    move |path: web::Path<(String, String)>, app_state: web::Data<App>| async move {
+                        let services = app_state.services.clone();
+                        let (domain, username) = path.into_inner();
+                        auth::get_auth_methods(&services, &domain, &username)
+                            .await
+                            .join(" | ")
+                    },
+                ),
+            ))
         })
         .bind("0.0.0.0:8080")?
         .run()
         .await?;
 
         Ok(())
+    }
+}
+
+impl App {
+    pub async fn register_service<T>(&self, service: Arc<T>)
+    where
+        T: ipanel_services::Service + ?Sized + 'static,
+        Arc<T>: ipanel_services::Service,
+    {
+        self.services.register(service).await;
+    }
+
+    pub async fn get_service<T>(&self) -> Arc<Arc<T>>
+    where
+        T: ipanel_services::Service + ?Sized + 'static,
+        Arc<T>: ipanel_services::Service,
+    {
+        self.services.get::<Arc<T>>().await.unwrap()
     }
 }

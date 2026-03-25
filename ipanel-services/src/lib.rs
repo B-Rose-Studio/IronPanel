@@ -2,18 +2,20 @@ use serde::Serialize;
 use std::{
     any::{Any, TypeId},
     collections::HashMap,
-    error::Error,
     fmt::Debug,
     sync::Arc,
 };
 use tokio::sync::RwLock;
 
+pub mod auth;
+
 #[async_trait::async_trait]
 pub trait Service: Sync + Send {
     type Args;
     type Out;
+    type Error: ServiceError;
 
-    async fn run(&self, args: Self::Args) -> Result<Self::Out, impl ServiceError>;
+    async fn run(&self, args: Self::Args) -> Result<Self::Out, Self::Error>;
 }
 
 pub trait ServiceBuilder: Sync + Send {
@@ -52,7 +54,7 @@ impl ServiceManager {
     }
 }
 
-pub trait ServiceError: Error + Debug {
+pub trait ServiceError: Debug {
     fn code(&self) -> String;
     fn description(&self) -> String;
     fn content(&self) -> &impl Serialize;
