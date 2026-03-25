@@ -1,0 +1,15 @@
+[tasks.format]
+workspace = false
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.lint-server]
+workspace = false
+command = "cargo"
+args = ["clippy", "-p", "ipanel-server", "--", "-D", "warnings"]
+
+[tasks.server]
+workspace = false
+dependencies = ["format", "lint-server"]
+command = "cargo"
+args = ["run", "-p", "ipanel-server"]

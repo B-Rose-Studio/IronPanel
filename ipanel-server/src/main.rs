@@ -11,5 +11,7 @@ async fn main() -> anyhow::Result<()> {
     app.register_service(GetAuthsByUserAndDomain {}.into_service())
         .await;
 
+    let _ = app.get_service::<dyn GetAuthsService>().await;
+
     app.run().await
 }
