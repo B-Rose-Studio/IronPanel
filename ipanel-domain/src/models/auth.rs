@@ -9,7 +9,7 @@ pub struct AuthId(pub String);
 pub struct Auth {
     pub id: Option<AuthId>,
     pub name: String,
-    pub params: BTreeMap<String, Value>,
+    pub params: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

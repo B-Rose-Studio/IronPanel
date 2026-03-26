@@ -6,5 +6,7 @@ edition = "2024"
 [dependencies]
 actix-web = { workspace = true }
 anyhow = { workspace = true }
+ipanel-repositories = { workspace = true }
 ipanel-services = { workspace = true }
+surrealdb = { workspace = true }
 tokio = { workspace = true }
