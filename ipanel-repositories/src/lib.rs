@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref, sync::Arc};
 use thiserror::Error;
 
 pub mod auth;
@@ -39,4 +39,23 @@ pub enum RepositoryError {
 pub enum ListMethod {
     All,
     Pagined { page: u32, qtd: u32 },
+}
+
+#[derive(Clone)]
+pub struct DBClient<T> {
+    db: Arc<T>,
+}
+
+impl<T> DBClient<T> {
+    pub fn new(db: T) -> Self {
+        Self { db: Arc::new(db) }
+    }
+}
+
+impl<T> Deref for DBClient<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.db
+    }
 }

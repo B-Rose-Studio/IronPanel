@@ -1,7 +1,6 @@
 use crate::app::App;
-use ipanel_repositories::auth::surrealdb::SurrealAuthRepository;
+use ipanel_repositories::{DBClient, auth::surrealdb::SurrealAuthRepository};
 use ipanel_services::auth::{GetAuthsService, impls::GetAuthsByUserAndDomain};
-use std::sync::Arc;
 use surrealdb::{Surreal, engine::remote::ws::Ws, opt::auth::Root};
 
 mod actions;
@@ -20,8 +19,8 @@ async fn main() -> anyhow::Result<()> {
 
     let _ = db.use_ns("applications").use_db("ipanel").await;
 
-    let db = Arc::new(db);
-    let _auth_repo = SurrealAuthRepository { db };
+    let db = DBClient::new(db);
+    let _auth_repo = SurrealAuthRepository::new(db);
 
     let app = App::new();
 

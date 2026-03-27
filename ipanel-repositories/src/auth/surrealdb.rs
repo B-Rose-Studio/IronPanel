@@ -1,8 +1,8 @@
 use crate::{
-    ListMethod, Repository, RepositoryError, RepositoryResult, auth::surrealdb::dtos::AuthRecord,
+    DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
+    auth::surrealdb::dtos::AuthRecord,
 };
 use ipanel_domain::models::auth::{Auth, AuthId};
-use std::sync::Arc;
 use surrealdb::{
     Surreal,
     engine::remote::ws::Client,
@@ -35,7 +35,13 @@ mod dtos {
 }
 
 pub struct SurrealAuthRepository {
-    pub db: Arc<Surreal<Client>>,
+    db: DBClient<Surreal<Client>>,
+}
+
+impl SurrealAuthRepository {
+    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+        Self { db }
+    }
 }
 
 #[async_trait::async_trait]
