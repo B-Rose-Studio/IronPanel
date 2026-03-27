@@ -1,7 +1,9 @@
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 use thiserror::Error;
 
-pub mod auth;
+mod impls;
+pub mod interfaces;
+pub use impls::*;
 
 pub type RepositoryResult<T> = Result<T, RepositoryError>;
 

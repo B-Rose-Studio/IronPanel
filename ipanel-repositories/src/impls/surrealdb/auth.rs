@@ -1,6 +1,6 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
-    auth::surrealdb::dtos::AuthRecord,
+    interfaces::auth::AuthRepository, surrealdb::dtos::AuthRecord,
 };
 use ipanel_domain::models::auth::{Auth, AuthId};
 use surrealdb::{
@@ -8,31 +8,6 @@ use surrealdb::{
     engine::remote::ws::Client,
     types::{RecordId, RecordIdKey},
 };
-
-mod dtos {
-    use ipanel_domain::models::auth::{Auth, AuthId};
-    use std::collections::BTreeMap;
-    use surrealdb::types::{RecordId, SurrealValue};
-
-    #[derive(SurrealValue)]
-    pub struct AuthRecord {
-        pub id: RecordId,
-        pub name: String,
-        pub params: BTreeMap<String, String>,
-    }
-
-    impl AuthRecord {
-        pub fn to_entity(&self) -> Auth {
-            Auth {
-                id: Some(AuthId(
-                    self.id.clone().key.into_value().into_string().unwrap(),
-                )),
-                name: self.name.clone(),
-                params: self.params.clone(),
-            }
-        }
-    }
-}
 
 pub struct SurrealAuthRepository {
     db: DBClient<Surreal<Client>>,
@@ -143,3 +118,6 @@ impl Repository for SurrealAuthRepository {
         }
     }
 }
+
+#[async_trait::async_trait]
+impl AuthRepository for SurrealAuthRepository {}

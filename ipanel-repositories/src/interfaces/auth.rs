@@ -1,5 +1,3 @@
-pub mod surrealdb;
-
 use crate::Repository;
 use ipanel_domain::models::auth::{Auth, AuthId};
 
