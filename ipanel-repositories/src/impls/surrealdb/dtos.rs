@@ -58,6 +58,7 @@ impl WeekdayRecord {
     }
 }
 
+#[allow(dead_code)]
 pub mod auth {
     use super::*;
 
@@ -166,6 +167,7 @@ pub mod group {
     }
 }
 
+#[allow(dead_code)]
 pub mod job {
     use super::*;
 

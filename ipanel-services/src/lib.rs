@@ -9,21 +9,8 @@ use tokio::sync::RwLock;
 
 pub mod auth;
 
-#[async_trait::async_trait]
-pub trait Service: Sync + Send {
-    type Args;
-    type Out;
-    type Error: ServiceError;
-
-    async fn run(&self, args: Self::Args) -> Result<Self::Out, Self::Error>;
-}
-
-pub trait ServiceBuilder: Sync + Send {
-    type S: Service;
-
-    fn new() -> Self;
-    fn build(self) -> Self::S;
-}
+pub trait Service: Sync + Send {}
+impl<T: ?Sized + Service> Service for Arc<T> {}
 
 #[derive(Debug, Default)]
 pub struct ServiceManager {

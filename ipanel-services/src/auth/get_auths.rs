@@ -3,21 +3,10 @@ use std::sync::Arc;
 
 pub struct GetAuthsServiceArgs {}
 
-pub trait GetAuthsService:
-    Service<Args = GetAuthsServiceArgs, Out = (), Error = GetAuthsServiceError>
-{
-    fn into_service(self) -> Arc<dyn GetAuthsService>;
-}
-
 #[async_trait::async_trait]
-impl Service for Arc<dyn GetAuthsService> {
-    type Args = GetAuthsServiceArgs;
-    type Out = ();
-    type Error = GetAuthsServiceError;
-
-    async fn run(&self, args: Self::Args) -> Result<Self::Out, Self::Error> {
-        self.as_ref().run(args).await
-    }
+pub trait GetAuthsService: Service {
+    fn build(self) -> Arc<dyn GetAuthsService>;
+    async fn run(&self, args: GetAuthsServiceArgs) -> Result<(), GetAuthsServiceError>;
 }
 
 #[derive(Debug)]
@@ -44,19 +33,21 @@ pub mod impls {
     use std::sync::Arc;
 
     pub struct GetAuthsByUserAndDomain {}
-    impl GetAuthsService for GetAuthsByUserAndDomain {
-        fn into_service(self) -> Arc<dyn GetAuthsService> {
-            Arc::new(self)
+    impl Service for GetAuthsByUserAndDomain {}
+
+    impl GetAuthsByUserAndDomain {
+        pub fn new() -> Self {
+            Self {}
         }
     }
 
     #[async_trait::async_trait]
-    impl Service for GetAuthsByUserAndDomain {
-        type Args = GetAuthsServiceArgs;
-        type Out = ();
-        type Error = GetAuthsServiceError;
+    impl GetAuthsService for GetAuthsByUserAndDomain {
+        fn build(self) -> Arc<dyn GetAuthsService> {
+            Arc::new(self)
+        }
 
-        async fn run(&self, _args: Self::Args) -> Result<Self::Out, Self::Error> {
+        async fn run(&self, _args: GetAuthsServiceArgs) -> Result<(), GetAuthsServiceError> {
             Err(GetAuthsServiceError::Unknow)
         }
     }

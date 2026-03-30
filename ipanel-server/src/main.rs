@@ -36,10 +36,10 @@ async fn main() -> anyhow::Result<()> {
 
     let app = App::new();
 
-    app.register_service(GetAuthsByUserAndDomain {}.into_service())
+    app.register_service::<dyn GetAuthsService>(GetAuthsByUserAndDomain::new().build())
         .await;
 
-    let _ = app.get_service::<dyn GetAuthsService>().await;
+    let _get_auths_service = app.get_service::<dyn GetAuthsService>().await;
 
     app.run().await
 }
