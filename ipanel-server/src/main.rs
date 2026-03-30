@@ -2,8 +2,9 @@ use crate::app::App;
 use ipanel_repositories::{
     DBClient,
     surrealdb::{
-        auth::SurrealAuthRepository, domain::SurrealDomainRepository, job::SurrealJobRepository,
-        log::SurrealLogRepository, user::SurrealUserRepository,
+        auth::SurrealAuthRepository, domain::SurrealDomainRepository,
+        group::SurrealGroupRepository, job::SurrealJobRepository, log::SurrealLogRepository,
+        user::SurrealUserRepository,
     },
 };
 use ipanel_services::auth::{GetAuthsService, impls::GetAuthsByUserAndDomain};
@@ -29,6 +30,7 @@ async fn main() -> anyhow::Result<()> {
     let _auth_repo = SurrealAuthRepository::new(db.clone());
     let _domain_repo = SurrealDomainRepository::new(db.clone());
     let _user_repo = SurrealUserRepository::new(db.clone());
+    let _group_repo = SurrealGroupRepository::new(db.clone());
     let _job_repo = SurrealJobRepository::new(db.clone());
     let _log_repo = SurrealLogRepository::new(db.clone());
 
