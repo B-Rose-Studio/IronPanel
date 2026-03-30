@@ -1,8 +1,12 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
-    interfaces::auth::AuthRepository, surrealdb::dtos::auth::AuthRecord,
+    interfaces::auth::AuthRepository,
+    surrealdb::dtos::auth::{AuthRecord, UserAuthRecord},
 };
-use ipanel_domain::models::auth::{Auth, AuthId};
+use ipanel_domain::models::{
+    auth::{Auth, AuthId, UserAuth, UserAuthId},
+    user::UserId,
+};
 use surrealdb::{
     Surreal,
     engine::remote::ws::Client,
@@ -120,4 +124,104 @@ impl Repository for SurrealAuthRepository {
 }
 
 #[async_trait::async_trait]
-impl AuthRepository for SurrealAuthRepository {}
+impl AuthRepository for SurrealAuthRepository {
+    async fn assign_auth_to_user(&self, user_auth: UserAuth) -> RepositoryResult<UserAuth> {
+        let record_data = UserAuthRecord {
+            id: RecordId::new("user_auth", RecordIdKey::rand()),
+            user_id: RecordId::new("users", user_auth.user_id.0.clone()),
+            auth_id: RecordId::new("auths", user_auth.auth_id.0.clone()),
+            params_values: user_auth.params_values,
+        };
+
+        let created: Option<UserAuthRecord> = self
+            .db
+            .create("user_auth")
+            .content(record_data)
+            .await
+            .map_err(|e| {
+                println!("{e:?}");
+                RepositoryError::DataError
+            })?;
+
+        Ok(created.unwrap().to_entity())
+    }
+
+    async fn get_user_auth(&self, id: UserAuthId) -> RepositoryResult<UserAuth> {
+        let record: Option<UserAuthRecord> = self
+            .db
+            .select(("user_auth", id.0.clone()))
+            .await
+            .map_err(|_| RepositoryError::DatabaseConnection)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+
+    async fn list_auths_by_user(&self, user_id: UserId) -> RepositoryResult<Vec<UserAuth>> {
+        let target_user = RecordId::new("users", user_id.0);
+
+        let mut response = self
+            .db
+            .query("SELECT * FROM user_auth WHERE user_id = $target")
+            .bind(("target", target_user))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let records: Vec<UserAuthRecord> =
+            response.take(0).map_err(|_| RepositoryError::DataError)?;
+        Ok(records.iter().map(|record| record.to_entity()).collect())
+    }
+
+    async fn list_users_by_auth(&self, auth_id: AuthId) -> RepositoryResult<Vec<UserAuth>> {
+        let target_auth = RecordId::new("auths", auth_id.0);
+
+        let mut response = self
+            .db
+            .query("SELECT * FROM user_auth WHERE auth_id = $target")
+            .bind(("target", target_auth))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let records: Vec<UserAuthRecord> =
+            response.take(0).map_err(|_| RepositoryError::DataError)?;
+        Ok(records.iter().map(|record| record.to_entity()).collect())
+    }
+
+    async fn update_user_auth(&self, user_auth: UserAuth) -> RepositoryResult<UserAuth> {
+        let id = user_auth.id.clone().ok_or(RepositoryError::DataError)?;
+
+        let record_data = UserAuthRecord {
+            id: RecordId::new("user_auth", id.0.clone()),
+            user_id: RecordId::new("users", user_auth.user_id.0.clone()),
+            auth_id: RecordId::new("auths", user_auth.auth_id.0.clone()),
+            params_values: user_auth.params_values,
+        };
+
+        let record: Option<UserAuthRecord> = self
+            .db
+            .update(("user_auth", id.0.clone()))
+            .content(record_data)
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+
+    async fn remove_auth_from_user(&self, id: UserAuthId) -> RepositoryResult<UserAuth> {
+        let record: Option<UserAuthRecord> = self
+            .db
+            .delete(("user_auth", id.0.clone()))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+}
