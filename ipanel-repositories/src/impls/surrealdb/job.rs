@@ -1,9 +1,14 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
-    interfaces::job::JobRepository, surrealdb::dtos::job::JobRecord,
+    interfaces::job::JobRepository,
+    surrealdb::dtos::job::{AssignedJobRecord, AssigneeIdRecord, JobRecord, JobTriggerRecord},
 };
-use ipanel_domain::models::job::{Job, JobId};
-use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};
+use ipanel_domain::models::job::{AssignedJob, AssignedJobId, AssigneeId, Job, JobId, JobTrigger};
+use surrealdb::{
+    Surreal,
+    engine::remote::ws::Client,
+    types::{RecordId, RecordIdKey},
+};
 
 pub struct SurrealJobRepository {
     db: DBClient<Surreal<Client>>,
@@ -122,4 +127,135 @@ impl Repository for SurrealJobRepository {
 }
 
 #[async_trait::async_trait]
-impl JobRepository for SurrealJobRepository {}
+impl JobRepository for SurrealJobRepository {
+    async fn assign_job(&self, assigned_job: AssignedJob) -> RepositoryResult<AssignedJob> {
+        let record_data = AssignedJobRecord {
+            id: RecordId::new("assigned_job", RecordIdKey::rand()),
+            assignee_id: match assigned_job.assignee_id {
+                AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
+                AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+            },
+            job_id: RecordId::new("jobs", assigned_job.job_id.0),
+            params_values: assigned_job.params_values,
+            trigger: match assigned_job.trigger {
+                JobTrigger::Manual => JobTriggerRecord::Manual,
+                JobTrigger::OnStartup => JobTriggerRecord::OnStartup,
+                JobTrigger::OnLogout => JobTriggerRecord::OnLogout,
+                JobTrigger::Interval { seconds } => JobTriggerRecord::Interval { seconds },
+                JobTrigger::Cron { expression } => JobTriggerRecord::Cron { expression },
+                JobTrigger::SpecificDate { date } => JobTriggerRecord::SpecificDate { date },
+            },
+        };
+
+        let created: Option<AssignedJobRecord> = self
+            .db
+            .create("assigned_job")
+            .content(record_data)
+            .await
+            .map_err(|e| {
+                println!("{e:?}");
+                RepositoryError::DataError
+            })?;
+
+        Ok(created.unwrap().to_entity())
+    }
+
+    async fn get_assigned_job(&self, id: AssignedJobId) -> RepositoryResult<AssignedJob> {
+        let record: Option<AssignedJobRecord> = self
+            .db
+            .select(("assigned_job", id.0.clone()))
+            .await
+            .map_err(|_| RepositoryError::DatabaseConnection)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+
+    async fn list_jobs_by_assignee(
+        &self,
+        assignee_id: AssigneeId,
+    ) -> RepositoryResult<Vec<AssignedJob>> {
+        let target_assignee = match assignee_id {
+            AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
+            AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+        };
+
+        let mut response = self
+            .db
+            .query("SELECT * FROM assigned_job WHERE assignee_id = $target")
+            .bind(("target", target_assignee))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let records: Vec<AssignedJobRecord> =
+            response.take(0).map_err(|_| RepositoryError::DataError)?;
+        Ok(records.iter().map(|record| record.to_entity()).collect())
+    }
+
+    async fn list_assignees_by_job(&self, job_id: JobId) -> RepositoryResult<Vec<AssignedJob>> {
+        let target_job = RecordId::new("jobs", job_id.0);
+
+        let mut response = self
+            .db
+            .query("SELECT * FROM assigned_job WHERE job_id = $target")
+            .bind(("target", target_job))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let records: Vec<AssignedJobRecord> =
+            response.take(0).map_err(|_| RepositoryError::DataError)?;
+        Ok(records.iter().map(|record| record.to_entity()).collect())
+    }
+
+    async fn update_assigned_job(
+        &self,
+        assigned_job: AssignedJob,
+    ) -> RepositoryResult<AssignedJob> {
+        let id = assigned_job.id.clone().ok_or(RepositoryError::DataError)?;
+
+        let record_data = AssignedJobRecord {
+            id: RecordId::new("assigned_job", id.0.clone()),
+            assignee_id: match assigned_job.assignee_id {
+                AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
+                AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+            },
+            job_id: RecordId::new("jobs", assigned_job.job_id.0),
+            params_values: assigned_job.params_values,
+            trigger: match assigned_job.trigger {
+                JobTrigger::Manual => JobTriggerRecord::Manual,
+                JobTrigger::OnStartup => JobTriggerRecord::OnStartup,
+                JobTrigger::OnLogout => JobTriggerRecord::OnLogout,
+                JobTrigger::Interval { seconds } => JobTriggerRecord::Interval { seconds },
+                JobTrigger::Cron { expression } => JobTriggerRecord::Cron { expression },
+                JobTrigger::SpecificDate { date } => JobTriggerRecord::SpecificDate { date },
+            },
+        };
+
+        let record: Option<AssignedJobRecord> = self
+            .db
+            .update(("assigned_job", id.0.clone()))
+            .content(record_data)
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+
+    async fn remove_assigned_job(&self, id: AssignedJobId) -> RepositoryResult<AssignedJob> {
+        let record: Option<AssignedJobRecord> = self
+            .db
+            .delete(("assigned_job", id.0.clone()))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        match record {
+            Some(r) => Ok(r.to_entity()),
+            None => Err(RepositoryError::EntityNotFound(id.0.clone())),
+        }
+    }
+}
