@@ -1,6 +1,6 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
-    interfaces::auth::AuthRepository, surrealdb::dtos::AuthRecord,
+    interfaces::auth::AuthRepository, surrealdb::dtos::auth::AuthRecord,
 };
 use ipanel_domain::models::auth::{Auth, AuthId};
 use surrealdb::{

@@ -1,6 +1,6 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
-    interfaces::domain::DomainRepository, surrealdb::dtos::DomainRecord,
+    interfaces::domain::DomainRepository, surrealdb::dtos::domain::DomainRecord,
 };
 use ipanel_domain::models::domain::{Domain, DomainId};
 use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};

@@ -7,6 +7,9 @@ use std::collections::BTreeMap;
 pub struct JobId(pub String);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct AssignedJobId(pub String);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AssigneeId {
     User(UserId),
     Group(GroupId),
@@ -33,7 +36,7 @@ pub struct Job {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AssignedJob {
-    pub id: Option<String>,
+    pub id: Option<AssignedJobId>,
     pub assignee_id: AssigneeId,
     pub job_id: JobId,
     pub params_values: BTreeMap<String, Value>,
