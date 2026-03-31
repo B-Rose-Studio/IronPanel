@@ -6,5 +6,7 @@ edition = "2024"
 [dependencies]
 async-trait = { workspace = true }
 ipanel-domain = { workspace = true }
+ipanel-repositories = { workspace = true }
 serde = { workspace = true }
+surrealdb = { workspace = true }
 tokio = { workspace = true }

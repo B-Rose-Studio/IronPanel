@@ -3648,7 +3648,9 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "ipanel-domain",
+ "ipanel-repositories",
  "serde",
+ "surrealdb",
  "tokio",
 ]
 

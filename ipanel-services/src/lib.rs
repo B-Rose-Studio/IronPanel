@@ -8,6 +8,7 @@ use std::{
 use tokio::sync::RwLock;
 
 pub mod auth;
+pub mod database;
 
 pub trait Service: Sync + Send {}
 impl<T: ?Sized + Service> Service for Arc<T> {}

@@ -35,6 +35,12 @@ pub mod impls {
     pub struct GetAuthsByUserAndDomain {}
     impl Service for GetAuthsByUserAndDomain {}
 
+    impl Default for GetAuthsByUserAndDomain {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
     impl GetAuthsByUserAndDomain {
         pub fn new() -> Self {
             Self {}
