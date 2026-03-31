@@ -184,7 +184,7 @@ impl JobRepository for SurrealJobRepository {
 
         let mut response = self
             .db
-            .query("SELECT * FROM assigned_job WHERE assignee_id = $target")
+            .query("SELECT * FROM assigned_job WHERE in = $target")
             .bind(("target", target_assignee))
             .await
             .map_err(|_| RepositoryError::DataError)?;
@@ -199,7 +199,7 @@ impl JobRepository for SurrealJobRepository {
 
         let mut response = self
             .db
-            .query("SELECT * FROM assigned_job WHERE job_id = $target")
+            .query("SELECT * FROM assigned_job WHERE out = $target")
             .bind(("target", target_job))
             .await
             .map_err(|_| RepositoryError::DataError)?;

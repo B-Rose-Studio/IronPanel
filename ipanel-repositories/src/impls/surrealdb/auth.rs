@@ -126,24 +126,26 @@ impl Repository for SurrealAuthRepository {
 #[async_trait::async_trait]
 impl AuthRepository for SurrealAuthRepository {
     async fn assign_auth_to_user(&self, user_auth: UserAuth) -> RepositoryResult<UserAuth> {
+        let record_id = RecordId::new("user_auth", RecordIdKey::rand());
+
         let record_data = UserAuthRecord {
-            id: RecordId::new("user_auth", RecordIdKey::rand()),
-            user_id: RecordId::new("users", user_auth.user_id.0.clone()),
-            auth_id: RecordId::new("auths", user_auth.auth_id.0.clone()),
+            id: record_id.clone(),
+            r#in: RecordId::new("users", user_auth.user_id.0.clone()),
+            out: RecordId::new("auths", user_auth.auth_id.0.clone()),
             params_values: user_auth.params_values,
         };
 
-        let created: Option<UserAuthRecord> = self
+        let created: Vec<UserAuthRecord> = self
             .db
-            .create("user_auth")
-            .content(record_data)
+            .insert("user_auth")
+            .relation(record_data)
             .await
             .map_err(|e| {
                 println!("{e:?}");
                 RepositoryError::DataError
             })?;
 
-        Ok(created.unwrap().to_entity())
+        Ok(created.first().unwrap().to_entity())
     }
 
     async fn get_user_auth(&self, id: UserAuthId) -> RepositoryResult<UserAuth> {
@@ -164,7 +166,7 @@ impl AuthRepository for SurrealAuthRepository {
 
         let mut response = self
             .db
-            .query("SELECT * FROM user_auth WHERE user_id = $target")
+            .query("SELECT * FROM user_auth WHERE in = $target")
             .bind(("target", target_user))
             .await
             .map_err(|_| RepositoryError::DataError)?;
@@ -179,7 +181,7 @@ impl AuthRepository for SurrealAuthRepository {
 
         let mut response = self
             .db
-            .query("SELECT * FROM user_auth WHERE auth_id = $target")
+            .query("SELECT * FROM user_auth WHERE out = $target")
             .bind(("target", target_auth))
             .await
             .map_err(|_| RepositoryError::DataError)?;
@@ -194,8 +196,8 @@ impl AuthRepository for SurrealAuthRepository {
 
         let record_data = UserAuthRecord {
             id: RecordId::new("user_auth", id.0.clone()),
-            user_id: RecordId::new("users", user_auth.user_id.0.clone()),
-            auth_id: RecordId::new("auths", user_auth.auth_id.0.clone()),
+            r#in: RecordId::new("users", user_auth.user_id.0.clone()),
+            out: RecordId::new("auths", user_auth.auth_id.0.clone()),
             params_values: user_auth.params_values,
         };
 

@@ -84,8 +84,9 @@ pub mod auth {
     #[derive(SurrealValue)]
     pub struct UserAuthRecord {
         pub id: RecordId,
-        pub user_id: RecordId,
-        pub auth_id: RecordId,
+        #[surreal(rename = "in")]
+        pub r#in: RecordId,
+        pub out: RecordId,
         pub params_values: BTreeMap<String, Value>,
     }
 
@@ -95,8 +96,8 @@ pub mod auth {
                 id: Some(UserAuthId(
                     self.id.clone().key.into_value().into_string().unwrap(),
                 )),
-                user_id: UserId(self.user_id.clone().key.into_value().into_string().unwrap()),
-                auth_id: AuthId(self.auth_id.clone().key.into_value().into_string().unwrap()),
+                user_id: UserId(self.r#in.clone().key.into_value().into_string().unwrap()),
+                auth_id: AuthId(self.out.clone().key.into_value().into_string().unwrap()),
                 params_values: self.params_values.clone(),
             }
         }
