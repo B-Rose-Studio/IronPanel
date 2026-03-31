@@ -8,6 +8,7 @@ use std::{
 use tokio::sync::RwLock;
 
 pub mod auth;
+pub mod config;
 pub mod database;
 
 pub trait Service: Sync + Send {}
