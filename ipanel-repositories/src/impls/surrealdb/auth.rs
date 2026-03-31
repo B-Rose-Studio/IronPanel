@@ -126,10 +126,8 @@ impl Repository for SurrealAuthRepository {
 #[async_trait::async_trait]
 impl AuthRepository for SurrealAuthRepository {
     async fn assign_auth_to_user(&self, user_auth: UserAuth) -> RepositoryResult<UserAuth> {
-        let record_id = RecordId::new("user_auth", RecordIdKey::rand());
-
         let record_data = UserAuthRecord {
-            id: record_id.clone(),
+            id: RecordId::new("user_auth", RecordIdKey::rand()),
             r#in: RecordId::new("users", user_auth.user_id.0.clone()),
             out: RecordId::new("auths", user_auth.auth_id.0.clone()),
             params_values: user_auth.params_values,

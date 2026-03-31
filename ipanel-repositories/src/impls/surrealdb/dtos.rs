@@ -220,29 +220,12 @@ pub mod job {
         }
     }
 
-    #[derive(SurrealValue, Clone)]
-    pub enum AssigneeIdRecord {
-        User(RecordId),
-        Group(RecordId),
-    }
-
-    impl AssigneeIdRecord {
-        pub fn to_entity(&self) -> AssigneeId {
-            match self {
-                Self::User(rid) => {
-                    AssigneeId::User(UserId(rid.clone().key.into_value().into_string().unwrap()))
-                }
-                Self::Group(rid) => {
-                    AssigneeId::Group(GroupId(rid.clone().key.into_value().into_string().unwrap()))
-                }
-            }
-        }
-    }
-
     #[derive(SurrealValue)]
     pub struct AssignedJobRecord {
         pub id: RecordId,
-        pub assignee_id: AssigneeIdRecord,
+        #[surreal(rename = "in")]
+        pub assignee_id: RecordId,
+        #[surreal(rename = "out")]
         pub job_id: RecordId,
         pub params_values: BTreeMap<String, Value>,
         pub trigger: JobTriggerRecord,
@@ -250,12 +233,33 @@ pub mod job {
 
     impl AssignedJobRecord {
         pub fn to_entity(&self) -> AssignedJob {
+            let table_origin = self.assignee_id.table.as_str();
+            let assignee_id = match table_origin {
+                "users" => AssigneeId::User(UserId(
+                    self.assignee_id
+                        .clone()
+                        .key
+                        .into_value()
+                        .into_string()
+                        .unwrap(),
+                )),
+                "groups" => AssigneeId::Group(GroupId(
+                    self.assignee_id
+                        .clone()
+                        .key
+                        .into_value()
+                        .into_string()
+                        .unwrap(),
+                )),
+                _ => unreachable!(),
+            };
+
             AssignedJob {
                 id: Some(AssignedJobId(
                     self.id.clone().key.into_value().into_string().unwrap(),
                 )),
 
-                assignee_id: self.assignee_id.to_entity(),
+                assignee_id,
                 job_id: JobId(self.job_id.clone().key.into_value().into_string().unwrap()),
                 params_values: self.params_values.clone(),
 

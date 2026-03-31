@@ -1,7 +1,7 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
     interfaces::job::JobRepository,
-    surrealdb::dtos::job::{AssignedJobRecord, AssigneeIdRecord, JobRecord, JobTriggerRecord},
+    surrealdb::dtos::job::{AssignedJobRecord, JobRecord, JobTriggerRecord},
 };
 use ipanel_domain::models::job::{AssignedJob, AssignedJobId, AssigneeId, Job, JobId, JobTrigger};
 use surrealdb::{
@@ -132,8 +132,8 @@ impl JobRepository for SurrealJobRepository {
         let record_data = AssignedJobRecord {
             id: RecordId::new("assigned_job", RecordIdKey::rand()),
             assignee_id: match assigned_job.assignee_id {
-                AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
-                AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+                AssigneeId::User(uid) => RecordId::new("users", uid.0),
+                AssigneeId::Group(gid) => RecordId::new("groups", gid.0),
             },
             job_id: RecordId::new("jobs", assigned_job.job_id.0),
             params_values: assigned_job.params_values,
@@ -147,17 +147,17 @@ impl JobRepository for SurrealJobRepository {
             },
         };
 
-        let created: Option<AssignedJobRecord> = self
+        let created: Vec<AssignedJobRecord> = self
             .db
-            .create("assigned_job")
-            .content(record_data)
+            .insert("assigned_job")
+            .relation(record_data)
             .await
             .map_err(|e| {
                 println!("{e:?}");
                 RepositoryError::DataError
             })?;
 
-        Ok(created.unwrap().to_entity())
+        Ok(created.first().unwrap().to_entity())
     }
 
     async fn get_assigned_job(&self, id: AssignedJobId) -> RepositoryResult<AssignedJob> {
@@ -178,8 +178,8 @@ impl JobRepository for SurrealJobRepository {
         assignee_id: AssigneeId,
     ) -> RepositoryResult<Vec<AssignedJob>> {
         let target_assignee = match assignee_id {
-            AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
-            AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+            AssigneeId::User(uid) => RecordId::new("users", uid.0),
+            AssigneeId::Group(gid) => RecordId::new("groups", gid.0),
         };
 
         let mut response = self
@@ -218,8 +218,8 @@ impl JobRepository for SurrealJobRepository {
         let record_data = AssignedJobRecord {
             id: RecordId::new("assigned_job", id.0.clone()),
             assignee_id: match assigned_job.assignee_id {
-                AssigneeId::User(uid) => AssigneeIdRecord::User(RecordId::new("users", uid.0)),
-                AssigneeId::Group(gid) => AssigneeIdRecord::Group(RecordId::new("groups", gid.0)),
+                AssigneeId::User(uid) => RecordId::new("users", uid.0),
+                AssigneeId::Group(gid) => RecordId::new("groups", gid.0),
             },
             job_id: RecordId::new("jobs", assigned_job.job_id.0),
             params_values: assigned_job.params_values,
