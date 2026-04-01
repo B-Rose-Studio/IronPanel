@@ -4,24 +4,23 @@ use ipanel_repositories::surrealdb::{
     job::SurrealJobRepository, log::SurrealLogRepository, user::SurrealUserRepository,
 };
 use ipanel_services::{
-    auth::{GetAuthsService, impls::GetAuthsByUserAndDomain},
-    config::{AppConfigProviderService, impls::SurrealAppConfigProvider},
-    database::{DatabaseProviderService, impls::SurrealDatabaseProvider},
+    auth::{GetAuthsByUserAndDomain, GetAuthsService},
+    config::{AppConfigProviderService, SurrealAppConfigProvider},
+    database::{DBConfig, DatabaseProviderService, SurrealDatabaseProvider},
 };
-use surrealdb::{Surreal, engine::remote::ws::Client};
+use surrealdb::{Surreal, engine::any::Any};
 
 mod actions;
 mod app;
 
-pub type DbClient = Surreal<Client>;
+pub type DbClient = Surreal<Any>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv::dotenv()?;
     let app = App::new();
 
-    let db_provider_service =
-        SurrealDatabaseProvider::new("localhost:8000", "ipanel", "applications", "admin", "admin")
-            .build();
+    let db_provider_service = SurrealDatabaseProvider::new(DBConfig::Env).build();
 
     let get_auths_service = GetAuthsByUserAndDomain::new().build();
 

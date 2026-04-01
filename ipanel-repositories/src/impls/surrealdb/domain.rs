@@ -3,14 +3,14 @@ use crate::{
     interfaces::domain::DomainRepository, surrealdb::dtos::domain::DomainRecord,
 };
 use ipanel_domain::models::domain::{Domain, DomainId};
-use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};
+use surrealdb::{Surreal, engine::any::Any, types::RecordId};
 
 pub struct SurrealDomainRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealDomainRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }

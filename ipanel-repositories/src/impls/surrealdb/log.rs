@@ -4,14 +4,14 @@ use crate::{
     surrealdb::dtos::log::{LogRecord, LogSourceRecord},
 };
 use ipanel_domain::models::log::{Log, LogId, LogSource};
-use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};
+use surrealdb::{Surreal, engine::any::Any, types::RecordId};
 
 pub struct SurrealLogRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealLogRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }

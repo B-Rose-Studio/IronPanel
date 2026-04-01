@@ -10,14 +10,14 @@ use ipanel_domain::models::{
     date::WeekdayName,
     user::{User, UserId, UserType},
 };
-use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};
+use surrealdb::{Surreal, engine::any::Any, types::RecordId};
 
 pub struct SurrealUserRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealUserRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }

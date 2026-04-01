@@ -9,16 +9,16 @@ use ipanel_domain::models::{
 };
 use surrealdb::{
     Surreal,
-    engine::remote::ws::Client,
+    engine::any::Any,
     types::{RecordId, RecordIdKey},
 };
 
 pub struct SurrealAuthRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealAuthRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }

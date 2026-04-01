@@ -1,52 +1,29 @@
-use crate::{Service, ServiceError};
-use ipanel_domain::config::application::ApplicationConfig;
+use crate::Service;
+use crate::config::{AppConfigProviderError, AppConfigProviderService};
+use ipanel_domain::{
+    config::application::ApplicationConfig, config::application::ConfigId, models::group::GroupId,
+};
+
+use ipanel_repositories::DBClient;
 use std::sync::Arc;
 
-#[async_trait::async_trait]
-pub trait AppConfigProviderService: Service {
-    fn build(self) -> Arc<dyn AppConfigProviderService>;
-    async fn run(&self) -> Result<ApplicationConfig, AppConfigProviderError>;
-}
-
-#[derive(Debug)]
-pub enum AppConfigProviderError {
-    ParseError(String),
-    NotFound(String),
-    Unknow,
-}
-
-impl ServiceError for AppConfigProviderError {
-    fn code(&self) -> String {
-        todo!()
-    }
-
-    fn content(&self) -> &impl serde::Serialize {
-        &()
-    }
-
-    fn description(&self) -> String {
-        todo!()
-    }
-}
-
-pub mod impls {
+pub use surreal::*;
+mod surreal {
     use super::*;
-    use ipanel_domain::{config::application::ConfigId, models::group::GroupId};
-    use ipanel_repositories::DBClient;
     use surrealdb::{
         Surreal,
-        engine::remote::ws::Client,
+        engine::any::Any,
         types::{RecordId, SurrealValue},
     };
 
     pub struct SurrealAppConfigProvider {
-        db: DBClient<Surreal<Client>>,
+        db: DBClient<Surreal<Any>>,
     }
 
     impl Service for SurrealAppConfigProvider {}
 
     impl SurrealAppConfigProvider {
-        pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+        pub fn new(db: DBClient<Surreal<Any>>) -> Self {
             Self { db }
         }
     }

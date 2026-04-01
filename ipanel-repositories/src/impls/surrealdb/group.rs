@@ -7,14 +7,14 @@ use ipanel_domain::models::{
     date::WeekdayName, // Ajuste o caminho se WeekdayName vier de outro arquivo
     group::{Group, GroupId},
 };
-use surrealdb::{Surreal, engine::remote::ws::Client, types::RecordId};
+use surrealdb::{Surreal, engine::any::Any, types::RecordId};
 
 pub struct SurrealGroupRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealGroupRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }

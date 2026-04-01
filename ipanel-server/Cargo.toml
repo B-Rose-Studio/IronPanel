@@ -6,8 +6,10 @@ edition = "2024"
 [dependencies]
 actix-web = { workspace = true }
 anyhow = { workspace = true }
+dotenv = "0.15.0"
 ipanel-domain = { workspace = true }
 ipanel-repositories = { workspace = true }
 ipanel-services = { workspace = true }
+serde_json = { workspace = true }
 surrealdb = { workspace = true }
 tokio = { workspace = true }

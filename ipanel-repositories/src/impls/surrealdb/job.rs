@@ -6,16 +6,16 @@ use crate::{
 use ipanel_domain::models::job::{AssignedJob, AssignedJobId, AssigneeId, Job, JobId, JobTrigger};
 use surrealdb::{
     Surreal,
-    engine::remote::ws::Client,
+    engine::any::Any,
     types::{RecordId, RecordIdKey},
 };
 
 pub struct SurrealJobRepository {
-    db: DBClient<Surreal<Client>>,
+    db: DBClient<Surreal<Any>>,
 }
 
 impl SurrealJobRepository {
-    pub fn new(db: DBClient<Surreal<Client>>) -> Self {
+    pub fn new(db: DBClient<Surreal<Any>>) -> Self {
         Self { db }
     }
 }
