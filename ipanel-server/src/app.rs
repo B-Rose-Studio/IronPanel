@@ -51,6 +51,7 @@ impl App {
         self.services.register(service).await;
     }
 
+    #[allow(dead_code)]
     pub async fn get_service<T>(&self) -> Arc<Arc<T>>
     where
         T: ipanel_services::Service + ?Sized + 'static,

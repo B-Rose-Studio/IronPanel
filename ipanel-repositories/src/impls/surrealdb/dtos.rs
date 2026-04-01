@@ -315,6 +315,7 @@ pub mod log {
 
 pub mod user {
     use super::*;
+    use std::str::FromStr;
 
     #[derive(SurrealValue)]
     pub struct UserRecord {

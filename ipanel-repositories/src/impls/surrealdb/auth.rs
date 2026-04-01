@@ -159,7 +159,7 @@ impl AuthRepository for SurrealAuthRepository {
         }
     }
 
-    async fn list_auths_by_user(&self, user_id: UserId) -> RepositoryResult<Vec<UserAuth>> {
+    async fn list_userauths_by_user(&self, user_id: UserId) -> RepositoryResult<Vec<UserAuth>> {
         let target_user = RecordId::new("users", user_id.0);
 
         let mut response = self
@@ -174,7 +174,7 @@ impl AuthRepository for SurrealAuthRepository {
         Ok(records.iter().map(|record| record.to_entity()).collect())
     }
 
-    async fn list_users_by_auth(&self, auth_id: AuthId) -> RepositoryResult<Vec<UserAuth>> {
+    async fn list_userauths_by_auth(&self, auth_id: AuthId) -> RepositoryResult<Vec<UserAuth>> {
         let target_auth = RecordId::new("auths", auth_id.0);
 
         let mut response = self
@@ -186,6 +186,20 @@ impl AuthRepository for SurrealAuthRepository {
 
         let records: Vec<UserAuthRecord> =
             response.take(0).map_err(|_| RepositoryError::DataError)?;
+        Ok(records.iter().map(|record| record.to_entity()).collect())
+    }
+
+    async fn list_auths_by_user(&self, user_id: UserId) -> RepositoryResult<Vec<Auth>> {
+        let target_user = RecordId::new("users", user_id.0);
+
+        let mut response = self
+            .db
+            .query("SELECT VALUE out.* FROM user_auth WHERE in = $target")
+            .bind(("target", target_user))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let records: Vec<AuthRecord> = response.take(0).map_err(|_| RepositoryError::DataError)?;
         Ok(records.iter().map(|record| record.to_entity()).collect())
     }
 

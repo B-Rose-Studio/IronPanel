@@ -1,6 +1,6 @@
 use super::{date::Weekday, domain::DomainId, group::GroupId};
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Display, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UserId(pub String);
@@ -11,19 +11,23 @@ pub enum UserType {
     Admin,
 }
 
-impl UserType {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s.to_lowercase().as_str() {
-            "common" => Some(UserType::Common),
-            "admin" => Some(UserType::Admin),
-            _ => None,
+impl Display for UserType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UserType::Common => write!(f, "common"),
+            UserType::Admin => write!(f, "admin"),
         }
     }
+}
 
-    pub fn to_string(&self) -> String {
-        match self {
-            UserType::Common => "common".to_string(),
-            UserType::Admin => "admin".to_string(),
+impl FromStr for UserType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "common" => Ok(UserType::Common),
+            "admin" => Ok(UserType::Admin),
+            _ => Err(()),
         }
     }
 }

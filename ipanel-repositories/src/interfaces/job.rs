@@ -2,7 +2,7 @@ use crate::{Repository, RepositoryResult};
 use ipanel_domain::models::job::{AssignedJob, AssignedJobId, AssigneeId, Job, JobId};
 
 #[async_trait::async_trait]
-pub trait JobRepository: Repository<Entity = Job, Id = JobId> {
+pub trait JobRepository: Send + Sync + Repository<Entity = Job, Id = JobId> {
     async fn assign_job(&self, assigned_job: AssignedJob) -> RepositoryResult<AssignedJob>;
 
     async fn get_assigned_job(&self, id: AssignedJobId) -> RepositoryResult<AssignedJob>;
