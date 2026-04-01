@@ -11,6 +11,23 @@ pub enum UserType {
     Admin,
 }
 
+impl UserType {
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "common" => Some(UserType::Common),
+            "admin" => Some(UserType::Admin),
+            _ => None,
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            UserType::Common => "common".to_string(),
+            UserType::Admin => "admin".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct User {
     pub id: Option<UserId>,

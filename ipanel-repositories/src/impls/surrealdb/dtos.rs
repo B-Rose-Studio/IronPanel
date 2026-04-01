@@ -58,7 +58,6 @@ impl WeekdayRecord {
     }
 }
 
-#[allow(dead_code)]
 pub mod auth {
     use super::*;
 
@@ -168,7 +167,6 @@ pub mod group {
     }
 }
 
-#[allow(dead_code)]
 pub mod job {
     use super::*;
 
@@ -318,21 +316,6 @@ pub mod log {
 pub mod user {
     use super::*;
 
-    #[derive(SurrealValue, Clone)]
-    pub enum UserTypeRecord {
-        Common,
-        Admin,
-    }
-
-    impl UserTypeRecord {
-        pub fn to_entity(&self) -> UserType {
-            match self {
-                Self::Common => UserType::Common,
-                Self::Admin => UserType::Admin,
-            }
-        }
-    }
-
     #[derive(SurrealValue)]
     pub struct UserRecord {
         pub id: RecordId,
@@ -340,7 +323,8 @@ pub mod user {
         pub active: bool,
         pub password: Option<String>,
         pub email: Option<String>,
-        pub user_type: UserTypeRecord,
+        #[surreal(rename = "type")]
+        pub r#type: String,
         pub optional_data: BTreeMap<String, Value>,
         pub domain: Option<RecordId>,
         pub group: RecordId,
@@ -357,7 +341,7 @@ pub mod user {
                 active: self.active,
                 password: self.password.clone(),
                 email: self.email.clone(),
-                user_type: self.user_type.to_entity(),
+                user_type: UserType::from_str(&self.r#type).unwrap(),
                 optional_data: self.optional_data.clone(),
                 domain: self
                     .domain

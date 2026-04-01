@@ -1,14 +1,11 @@
 use crate::{
     DBClient, ListMethod, Repository, RepositoryError, RepositoryResult,
     interfaces::user::UserRepository,
-    surrealdb::dtos::{
-        WeekdayNameRecord, WeekdayRecord,
-        user::{UserRecord, UserTypeRecord},
-    },
+    surrealdb::dtos::{WeekdayNameRecord, WeekdayRecord, user::UserRecord},
 };
 use ipanel_domain::models::{
     date::WeekdayName,
-    user::{User, UserId, UserType},
+    user::{User, UserId},
 };
 use surrealdb::{Surreal, engine::any::Any, types::RecordId};
 
@@ -75,10 +72,7 @@ impl Repository for SurrealUserRepository {
             active: entity.active,
             password: entity.password,
             email: entity.email,
-            user_type: match entity.user_type {
-                UserType::Common => UserTypeRecord::Common,
-                UserType::Admin => UserTypeRecord::Admin,
-            },
+            r#type: entity.user_type.to_string(),
             optional_data: entity.optional_data,
             domain: entity.domain.map(|d| RecordId::new("domains", d.0)),
             group: RecordId::new("groups", entity.group.0),
@@ -123,10 +117,7 @@ impl Repository for SurrealUserRepository {
             active: entity.active,
             password: entity.password,
             email: entity.email,
-            user_type: match entity.user_type {
-                UserType::Common => UserTypeRecord::Common,
-                UserType::Admin => UserTypeRecord::Admin,
-            },
+            r#type: entity.user_type.to_string(),
             optional_data: entity.optional_data,
             domain: entity.domain.map(|d| RecordId::new("domains", d.0)),
             group: RecordId::new("groups", entity.group.0),
@@ -177,4 +168,30 @@ impl Repository for SurrealUserRepository {
 }
 
 #[async_trait::async_trait]
-impl UserRepository for SurrealUserRepository {}
+impl UserRepository for SurrealUserRepository {
+    async fn find_by_username_and_domain(
+        &self,
+        username: String,
+        domain: String,
+    ) -> RepositoryResult<User> {
+        let mut index_result = self
+            .db
+            .query("SELECT * FROM users WHERE username = $username AND domain.name = $domain")
+            .bind(("username".to_string(), username.clone()))
+            .bind(("domain".to_string(), domain.clone()))
+            .await
+            .map_err(|_| RepositoryError::DataError)?;
+
+        let user: UserRecord = index_result
+            .take::<Option<UserRecord>>(0)
+            .map_err(|e| {
+                println!("{e:?}");
+                RepositoryError::DataError
+            })?
+            .ok_or(RepositoryError::EntityNotFound(
+                "User not found".to_string(),
+            ))?;
+
+        Ok(user.to_entity())
+    }
+}
