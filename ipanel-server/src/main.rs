@@ -4,7 +4,7 @@ use ipanel_repositories::surrealdb::{
     job::SurrealJobRepository, log::SurrealLogRepository, user::SurrealUserRepository,
 };
 use ipanel_services::{
-    auth::{GetAuthsByUser, GetAuthsByUserService},
+    auth::{GetAuths, GetAuthsService},
     config::{AppConfigProviderService, SurrealAppConfigProvider},
     database::{DBConfig, DatabaseProviderService, SurrealDatabaseProvider},
 };
@@ -33,9 +33,9 @@ async fn main() -> anyhow::Result<()> {
     let _job_repo = Arc::new(SurrealJobRepository::new(db.clone()));
     let _log_repo = Arc::new(SurrealLogRepository::new(db.clone()));
 
-    let get_auths_by_user_service = GetAuthsByUser::new(auth_repo.clone()).build();
+    let get_auths_by_user_service = GetAuths::new(auth_repo.clone()).build();
 
-    app.register_service::<dyn GetAuthsByUserService>(get_auths_by_user_service)
+    app.register_service::<dyn GetAuthsService>(get_auths_by_user_service)
         .await;
 
     app.register_service::<dyn DatabaseProviderService<DbClient>>(db_provider_service)

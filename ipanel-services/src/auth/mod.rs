@@ -1,23 +1,35 @@
-mod get_auths_by_user;
-pub use get_auths_by_user::*;
+mod get_auths;
+pub use get_auths::*;
 
 use crate::ServiceError;
 
 #[derive(Debug)]
-pub enum AuthServiceError {
-    Unknow,
+pub struct AuthServiceError {
+    code: String,
+    description: String,
+    content: String,
+}
+
+impl AuthServiceError {
+    pub fn unknown() -> Self {
+        Self {
+            code: "unknown".to_string(),
+            description: "Unknown error".to_string(),
+            content: "Unknown error".to_string(),
+        }
+    }
 }
 
 impl ServiceError for AuthServiceError {
     fn code(&self) -> String {
-        todo!()
+        self.code.clone()
     }
 
     fn content(&self) -> &impl serde::Serialize {
-        &()
+        &self.content
     }
 
     fn description(&self) -> String {
-        todo!()
+        self.description.clone()
     }
 }
